@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model User {
+  id           String    @id
+  username     String    @unique
+  passwordHash String?
+  email        String?   @unique
+  employeeId   String    @unique
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  sessions     Session[]
+  role         RoleType
+
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+enum RoleType {
+  USER
+  ADMIN
+}
+
+model Employee {
+  id            String         @id
+  displayName   String
+  phone         String?
+  avatarUrl     String?
+  position      String?
+  department    String?
+  hireDate      DateTime?
+  leaveRequests LeaveRequest[]
+  payrolls      Payroll[]
+  user          User?
+  userId        String?
+
+  @@map("employees")
+}
+
+model LeaveRequest {
+  id         String   @id @default(cuid())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+  startDate  DateTime
+  endDate    DateTime
+  leaveType  String
+  status     String
+  createdAt  DateTime @default(now())
+
+  @@map("leave_requests")
+}
+
+model Payroll {
+  id             String   @id @default(cuid())
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId     String
+  payPeriodStart DateTime
+  payPeriodEnd   DateTime
+  amountPaid     Float
+  paymentDate    DateTime
+
+  @@map("payrolls")
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
