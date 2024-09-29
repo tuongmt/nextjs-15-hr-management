@@ -1,18 +1,37 @@
 "use server";
 
-import { lucia } from "@/auth";
+import { lucia, validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
+import { getEmployeeDataInclude } from "@/lib/types";
 import { signupSchema, SignUpValues } from "@/lib/validation";
 import { hash } from "@node-rs/argon2";
 import { RoleType } from "@prisma/client";
 import { generateIdFromEntropySize } from "lucia";
-import { isRedirectError } from "next/dist/client/components/redirect";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-export async function signUp(
-  credentials: SignUpValues
-): Promise<{ error: string }> {
+export async function deleteEmployee(id: string) {
+  const { user } = await validateRequest();
+
+  if (user?.role !== "ADMIN") throw new Error("Unauthoried");
+
+  const employee = await prisma.employee.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!employee) throw new Error("Employee not found");
+
+  const deletedEmployee = await prisma.employee.delete({
+    where: {
+      id,
+    },
+    include: getEmployeeDataInclude(user.id),
+  });
+
+  return deletedEmployee;
+}
+
+export async function addEmployee(credentials: SignUpValues) {
   try {
     const { email, username, password } = signupSchema.parse(credentials);
     const passwordHash = await hash(password, {
@@ -28,7 +47,7 @@ export async function signUp(
       where: {
         username: {
           equals: username,
-          mode: "insensitive", // "flodrian" == "Flodrian"
+          mode: "insensitive",
         },
       },
     });
@@ -54,14 +73,14 @@ export async function signUp(
       };
     }
 
-    await prisma.$transaction(async (tx) => {
+    const addedEmployee = await prisma.$transaction(async (tx) => {
       const employee = await tx.employee.create({
         data: {
           id: userId,
         },
       });
 
-      await tx.user.create({
+      const newUser = await tx.user.create({
         data: {
           id: userId,
           username,
@@ -74,19 +93,12 @@ export async function signUp(
           role: RoleType.USER,
         },
       });
+
+      return newUser;
     });
 
-    const session = await lucia.createSession(userId, {});
-    const sessionCookie = lucia.createSessionCookie(session.id);
-    cookies().set(
-      sessionCookie.name,
-      sessionCookie.value,
-      sessionCookie.attributes
-    );
-
-    return redirect("/");
+    return addedEmployee;
   } catch (error) {
-    if (isRedirectError(error)) throw error;
     console.log(error);
     return {
       error: "Something went wrong. Please try again.",

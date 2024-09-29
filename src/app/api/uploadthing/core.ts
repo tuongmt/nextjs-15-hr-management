@@ -32,7 +32,7 @@ export const fileRouter = {
       );
 
       await Promise.all([
-        prisma.employee.update({
+        prisma.user.update({
           where: {
             id: metadata.user.id,
           },

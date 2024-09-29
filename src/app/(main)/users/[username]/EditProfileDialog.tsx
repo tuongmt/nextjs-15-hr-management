@@ -45,8 +45,8 @@ export default function EditProfileDialog({
   const form = useForm<UpdateUserProfileValues>({
     resolver: zodResolver(updateUserProfileSchema),
     defaultValues: {
-      displayName: user.employee.displayName,
-      phone: user.employee.phone || "",
+      displayName: user.displayName,
+      phone: user.phone || "",
     },
   });
 
@@ -85,7 +85,7 @@ export default function EditProfileDialog({
             src={
               croppedAvatar
                 ? URL.createObjectURL(croppedAvatar)
-                : user.employee.avatarUrl || avatarPlaceholder
+                : user.avatarUrl || avatarPlaceholder
             }
             onImageCropped={setCroppedAvatar}
           />

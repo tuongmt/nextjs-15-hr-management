@@ -7,6 +7,10 @@ export function getUserDataSelect(loggedInUserId: string) {
     employee: true,
     createdAt: true,
     email: true,
+    displayName: true,
+    avatarUrl: true,
+    phone: true,
+    role: true,
   } satisfies Prisma.UserSelect;
 }
 
@@ -14,15 +18,21 @@ export type UserData = Prisma.UserGetPayload<{
   select: ReturnType<typeof getUserDataSelect>;
 }>;
 
-export function getEmployeeDataSelect(loggedInUserId: string) {
+export function getEmployeeDataInclude(loggedInUserId: string) {
   return {
-    id: true,
-    displayName: true,
-    phone: true,
-    avatarUrl: true,
-  } satisfies Prisma.EmployeeSelect;
+    user: {
+      select: getUserDataSelect(loggedInUserId),
+    },
+    leaveRequests: true,
+    payrolls: true,
+  } satisfies Prisma.EmployeeInclude;
 }
 
 export type EmployeeData = Prisma.EmployeeGetPayload<{
-  select: ReturnType<typeof getEmployeeDataSelect>;
+  include: ReturnType<typeof getEmployeeDataInclude>;
 }>;
+
+export interface EmployeesPage {
+  employees: EmployeeData[];
+  nextCursor: string | null;
+}

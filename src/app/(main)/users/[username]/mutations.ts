@@ -15,8 +15,6 @@ export function useUpdateProfileMutation() {
 
   const router = useRouter();
 
-  const queryClient = useQueryClient();
-
   const { startUpload: startAvatarUpload } = useUploadThing("avatar");
 
   const mutation = useMutation({
@@ -27,7 +25,6 @@ export function useUpdateProfileMutation() {
       values: UpdateUserProfileValues;
       avatar?: File;
     }) => {
-      console.log(avatar);
       return Promise.all([
         updateUserProfile(values),
         avatar && startAvatarUpload([avatar]),

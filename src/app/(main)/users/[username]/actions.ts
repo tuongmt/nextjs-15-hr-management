@@ -2,7 +2,7 @@
 
 import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
-import { getEmployeeDataSelect } from "@/lib/types";
+import {  getUserDataSelect } from "@/lib/types";
 import {
   changeUserPasswordSchema,
   updateUserProfileSchema,
@@ -16,14 +16,15 @@ export async function updateUserProfile(values: UpdateUserProfileValues) {
 
   if (!user) throw new Error("Unauthoried");
 
-  const updatedUser = await prisma.$transaction(async (tx) => {
-    const updatedUser = tx.employee.update({
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedUser = tx.user.update({
       where: { id: user.id },
       data: validateValues,
-      select: getEmployeeDataSelect(user.id),
+      select: getUserDataSelect(user.id),
     });
+
     return updatedUser;
   });
 
-  return updatedUser;
+  return result;
 }

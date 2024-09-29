@@ -13,12 +13,14 @@ export const lucia = new Lucia(adapter, {
       secure: process.env.NODE_ENV === "production",
     },
   },
+
   getUserAttributes(databaseUserAttributes) {
     return {
       id: databaseUserAttributes.id,
       username: databaseUserAttributes.username,
       displayName: databaseUserAttributes.displayName,
       avatarUrl: databaseUserAttributes.avatarUrl,
+      role: databaseUserAttributes.role,
     };
   },
 });
@@ -35,13 +37,13 @@ interface DatabaseUserAttributes {
   username: string;
   displayName: string;
   avatarUrl: string | null;
+  role: string;
 }
 
 export const validateRequest = cache(
   async (): Promise<
     | {
         user: User;
-
         session: Session;
       }
     | { user: null; session: null }
