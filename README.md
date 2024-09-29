@@ -2,7 +2,7 @@
 
 ## First, install packages and set up environments:
 
-npm i
+npm i --legacy-peer-deps
 
 database: using Vercel Postgres
 
@@ -20,5 +20,5 @@ Open [http://localhost:3000] with your browser to see the result.
 
 - Account admin:
   username: tuong, password: 12345678
-  -Account user:
+- Account user:
   username: a, password: 12345678
